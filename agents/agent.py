@@ -37,7 +37,8 @@ class Agent():
         self.memory = ReplayBuffer(self.buffer_size, self.batch_size)
 
         # Algorithm parameters
-        self.gamma = 0.99  # discount factor
+        #self.gamma = 0.99  # discount factor
+        self.gamma = 0.98
         self.tau = 0.01  # for soft update of target parameters
 
     def reset_episode(self):
@@ -47,6 +48,10 @@ class Agent():
         return state
 
     def step(self, action, reward, next_state, done):
+        def decay_epsilon(model):
+            if model.epsilon > model.epsilon_min:
+                model.epsilon *= model.epsilon_decay
+
          # Save experience / reward
         self.memory.add(self.last_state, action, reward, next_state, done)
 
@@ -57,6 +62,10 @@ class Agent():
 
         # Roll over last state and action
         self.last_state = next_state
+        decay_epsilon(self.actor_local)
+        decay_epsilon(self.actor_target)
+        decay_epsilon(self.critic_local)
+        decay_epsilon(self.critic_target)
 
     def act(self, state):
         """Returns actions for given state(s) as per current policy."""

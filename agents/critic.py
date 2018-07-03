@@ -16,6 +16,11 @@ class Critic:
         self.action_size = action_size
 
         # Initialize any other variables here
+        self.learning_rate = 0.001
+        self.epsilon = 1.0
+        self.epsilon_decay = 0.995
+        self.epsilon_min = K.epsilon()
+        self.decay = 0.0
 
         self.build_model()
 
@@ -48,7 +53,9 @@ class Critic:
         self.model = models.Model(inputs=[states, actions], outputs=Q_values)
 
         # Define optimizer and compile model for training with built-in loss function
-        optimizer = optimizers.Adam()
+        optimizer = optimizers.Adam(lr=self.learning_rate,
+                                    epsilon=self.epsilon,
+                                    decay=self.decay)
         self.model.compile(optimizer=optimizer, loss='mse')
 
         # Compute action gradients (derivative of Q values w.r.t. to actions)
