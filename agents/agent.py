@@ -38,8 +38,17 @@ class Agent():
 
         # Algorithm parameters
         #self.gamma = 0.99  # discount factor
-        self.gamma = 0.98
+        self.gamma = 1.0
         self.tau = 0.01  # for soft update of target parameters
+        
+        self.epsilon = 1.0
+        self.epsilon_decay = 0.995
+        self.epsilon_min = 0.001
+        
+        self.rotor_speed_min = 0
+        self.rotor_speed_max = 600
+        
+        self.best_score = -np.inf
 
     def reset_episode(self):
         self.noise.reset()
@@ -48,10 +57,6 @@ class Agent():
         return state
 
     def step(self, action, reward, next_state, done):
-        def decay_epsilon(model):
-            if model.epsilon > model.epsilon_min:
-                model.epsilon *= model.epsilon_decay
-
          # Save experience / reward
         self.memory.add(self.last_state, action, reward, next_state, done)
 
@@ -62,15 +67,23 @@ class Agent():
 
         # Roll over last state and action
         self.last_state = next_state
-        decay_epsilon(self.actor_local)
-        decay_epsilon(self.actor_target)
-        decay_epsilon(self.critic_local)
-        decay_epsilon(self.critic_target)
 
+    def update_score(self, avg_reward):
+        if avg_reward > self.best_score:
+            self.best_score = avg_reward
+        
     def act(self, state):
         """Returns actions for given state(s) as per current policy."""
         state = np.reshape(state, [-1, self.state_size])
-        action = self.actor_local.model.predict(state)[0]
+        
+        # gives more chances to explore in addition to the noise
+        if self.epsilon > self.epsilon_min:
+            self.epsilon *= self.epsilon_decay
+        if np.random.rand() <= self.epsilon:
+            action = np.random.randint(self.rotor_speed_min, self.rotor_speed_max, 4)
+        else:
+            action = self.actor_local.model.predict(state)[0]
+
         return list(action + self.noise.sample())  # add some noise for exploration
 
     def learn(self, experiences):

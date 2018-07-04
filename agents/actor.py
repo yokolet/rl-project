@@ -22,10 +22,6 @@ class Actor:
 
         # Initialize any other variables here
         self.learning_rate = 0.001
-        self.epsilon = 1.0
-        self.epsilon_decay = 0.995
-        self.epsilon_min = K.epsilon()
-        self.decay = 0.0
 
         self.build_model()
 
@@ -59,9 +55,7 @@ class Actor:
         # Incorporate any additional losses here (e.g. from regularizers)
 
         # Define optimizer and training function
-        optimizer = optimizers.Adam(lr=self.learning_rate,
-                                    epsilon=self.epsilon,
-                                    decay=self.decay)
+        optimizer = optimizers.Adam(lr=self.learning_rate)
         updates_op = optimizer.get_updates(params=self.model.trainable_weights, loss=loss)
         self.train_fn = K.function(
             inputs=[self.model.input, action_gradients, K.learning_phase()],

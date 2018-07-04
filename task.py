@@ -27,9 +27,12 @@ class Task():
         self.target_pos = target_pos if target_pos is not None else np.array([0., 0., 10.]) 
 
         # For distance normalization
-        self.norm=[1.0 if (target_pos[i] - init_pose[i]) == 0 else \
-                   np.linalg.norm([init_pose[i], target_pos[i]]) for i in range(3)]
-        self.norm_target = self.target_pos / self.norm
+        try:
+            self.norm=[1.0 if (target_pos[i] - init_pose[i]) == 0 else \
+                       np.linalg.norm([init_pose[i], target_pos[i]]) for i in range(3)]
+            self.norm_target = self.target_pos / self.norm
+        except TypeError:
+            self.norm = [1.0, 1.0, 1.0]
 
     def get_reward(self):
         """Uses current pose of sim to return reward."""
@@ -47,13 +50,16 @@ class Task():
                 return 1.0
             # normalized average diff of x, y and z
             av_diff = sum(diff) / 3.0
-            return max(1 - av_diff**0.5, -1.0)
+            return max(1 - av_diff**0.4, -1.0)
 
         # crush
         if self.sim.pose[2] < 0:
-            return -1.0
+            return -1.0    
         reward = dist_reward(self.sim.pose[:3])
-        return reward
+        # going up
+        if self.sim.v[2] > 0:
+            reward += 0.1
+        return min(reward, 1.0)
 
     def step(self, rotor_speeds, opt=False):
         """Uses action to obtain next state, reward, done."""
