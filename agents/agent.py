@@ -39,7 +39,8 @@ class Agent():
         # Algorithm parameters
         #self.gamma = 0.99  # discount factor
         self.gamma = 1.0
-        self.tau = 0.01  # for soft update of target parameters
+        #self.tau = 0.01  # for soft update of target parameters
+        self.tau = 0.001
         
         self.epsilon = 1.0
         self.epsilon_decay = 0.995

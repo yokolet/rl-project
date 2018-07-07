@@ -1,4 +1,5 @@
 import numpy as np
+import math
 from physics_sim import PhysicsSim
 
 class Task():
@@ -45,20 +46,23 @@ class Task():
             normalized = xyz / self.norm
             # normalized diff of x, y, and z
             diff = abs(normalized - self.norm_target)
-            if min(diff) < 0.03:
-                # close enough to the target
+            # focuses on the height only
+            if (diff < 0.03).all():
+                # close enough height to the target
                 return 1.0
-            # normalized average diff of x, y and z
             av_diff = sum(diff) / 3.0
             return max(1 - av_diff**0.4, -1.0)
+        def velocity_reward_exp(zv):
+            return 0.01 * np.exp(zv)
 
-        # crush
+        # crash
         if self.sim.pose[2] < 0:
             return -1.0    
         reward = dist_reward(self.sim.pose[:3])
-        # going up
         if self.sim.v[2] > 0:
-            reward += 0.1
+            reward += velocity_reward_exp(self.sim.v[2])
+        if self.sim.v[2] < 0:
+            reward -= 0.1
         return min(reward, 1.0)
 
     def step(self, rotor_speeds, opt=False):

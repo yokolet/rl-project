@@ -21,7 +21,7 @@ class Actor:
         self.action_range = self.action_high - self.action_low
 
         # Initialize any other variables here
-        self.learning_rate = 0.001
+        self.learning_rate = 0.0001
 
         self.build_model()
 
